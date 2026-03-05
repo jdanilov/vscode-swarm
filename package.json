@@ -248,6 +248,29 @@
           "type": "boolean",
           "default": true,
           "description": "Show notifications when tasks complete"
+        },
+        "swarm.notificationSound": {
+          "type": "string",
+          "enum": [
+            "none",
+            "sonar",
+            "chime",
+            "ping",
+            "marimba",
+            "droplet",
+            "cash"
+          ],
+          "enumDescriptions": [
+            "No sound",
+            "Sonar ping",
+            "Chime",
+            "Simple ping",
+            "Marimba tone",
+            "Water droplet",
+            "Cash register"
+          ],
+          "default": "sonar",
+          "description": "Sound to play when tasks complete"
         }
       }
     }

@@ -6,6 +6,7 @@ import { WorktreeService } from './services/WorktreeService';
 import { HookServer, ActivityEvent } from './services/HookServer';
 import { ClaudeSpawner } from './services/ClaudeSpawner';
 import { TaskGitService } from './services/TaskGitService';
+import { SoundService } from './services/SoundService';
 import { TaskTreeProvider, TaskItem } from './providers/TaskTreeProvider';
 import { NewTaskPanel, NewTaskFormData } from './panels/NewTaskPanel';
 import { PermissionMode, Model, Task } from './types';
@@ -16,6 +17,7 @@ let spawner: ClaudeSpawner;
 let storage: StorageService;
 let worktreeService: WorktreeService;
 let taskGitService: TaskGitService;
+let soundService: SoundService;
 let treeProvider: TaskTreeProvider;
 let treeView: vscode.TreeView<TaskItem>;
 let extensionUri: vscode.Uri;
@@ -28,6 +30,7 @@ export async function activate(context: vscode.ExtensionContext) {
   storage = new StorageService(context);
   worktreeService = new WorktreeService();
   taskGitService = new TaskGitService();
+  soundService = new SoundService(context.extensionPath);
   hookServer = new HookServer();
   const port = await hookServer.start();
 
@@ -50,6 +53,9 @@ export async function activate(context: vscode.ExtensionContext) {
         const msg = task ? `${task.name} finished` : 'Task finished';
         vscode.window.showInformationMessage(`Swarm: ${msg}`);
       }
+
+      // Play notification sound (always, regardless of visibility)
+      soundService.playFromConfig();
     }
   });
 
