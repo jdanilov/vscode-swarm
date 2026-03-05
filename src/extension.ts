@@ -99,6 +99,20 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(gitWatcher);
 
+  // Also refresh stats on file save (detects unstaged changes)
+  let saveDebounceTimer: NodeJS.Timeout | undefined;
+  context.subscriptions.push(
+    vscode.workspace.onDidSaveTextDocument(() => {
+      // Debounce to avoid excessive refreshes when multiple files are saved
+      if (saveDebounceTimer) {
+        clearTimeout(saveDebounceTimer);
+      }
+      saveDebounceTimer = setTimeout(() => {
+        treeProvider.refreshGitStats();
+      }, 350);
+    }),
+  );
+
   // Status bar
   const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 50);
   statusBar.command = 'swarmTasks.focus';
