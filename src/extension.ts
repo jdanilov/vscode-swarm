@@ -80,7 +80,10 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('swarm.commitTask', (item: TaskItem) => commitTask(item)),
     vscode.commands.registerCommand('swarm.syncTask', (item: TaskItem) => syncTask(item)),
     vscode.commands.registerCommand('swarm.mergeTask', (item: TaskItem) => mergeTask(item)),
-    vscode.commands.registerCommand('swarm.forkTask', (item: TaskItem) => forkTask(item)),
+    vscode.commands.registerCommand('swarm.forkSession', (item: TaskItem) => forkSession(item)),
+    vscode.commands.registerCommand('swarm.newSessionInBranch', (item: TaskItem) =>
+      newSessionInBranch(item),
+    ),
   );
 
   // Handle tasks that were active before restart - resume sessions in orphaned terminals
@@ -278,16 +281,19 @@ async function mergeTask(item: TaskItem) {
 }
 
 /**
- * Fork a task - create a new task in the same worktree/branch with a new Claude session.
+ * Fork session - create a new task that forks the source task's Claude session context.
+ * Uses --continue --fork-session to preserve conversation history in a new session.
  * Naming: "TaskName" -> "TaskName (2)" -> "TaskName (3)", etc.
  */
-async function forkTask(item: TaskItem) {
+async function forkSession(item: TaskItem) {
   const sourceTask = item.task;
+  const projectPath = getProjectPath();
+  if (!projectPath) return;
 
   // Generate sibling name
   const newName = generateSiblingName(sourceTask.name, storage.getTasks());
 
-  // Create new task sharing the same worktree
+  // Create new task sharing the same worktree/branch
   const task: Task = {
     id: crypto.randomBytes(6).toString('hex'),
     sessionId: crypto.randomUUID(),
@@ -304,7 +310,47 @@ async function forkTask(item: TaskItem) {
   storage.addTask(task);
   treeProvider.refresh();
 
-  // Auto-spawn the forked task
+  // Spawn with fork-session flag to fork the source task's Claude context
+  try {
+    storage.updateTask(task.id, { status: 'idle' });
+    treeProvider.refresh();
+    await spawner.spawn(task, projectPath, false, true); // forkSession=true
+  } catch (err: unknown) {
+    storage.updateTask(task.id, { status: 'stopped' });
+    treeProvider.refresh();
+    vscode.window.showErrorMessage(`Failed to start Claude: ${getErrorMessage(err)}`);
+  }
+}
+
+/**
+ * New session in branch - create a new task in the same branch with a fresh Claude session.
+ * Does NOT inherit conversation history from the source task.
+ * Naming: "TaskName" -> "TaskName (2)" -> "TaskName (3)", etc.
+ */
+async function newSessionInBranch(item: TaskItem) {
+  const sourceTask = item.task;
+
+  // Generate sibling name
+  const newName = generateSiblingName(sourceTask.name, storage.getTasks());
+
+  // Create new task sharing the same worktree/branch
+  const task: Task = {
+    id: crypto.randomBytes(6).toString('hex'),
+    sessionId: crypto.randomUUID(),
+    name: newName,
+    branch: sourceTask.branch,
+    baseBranch: sourceTask.baseBranch,
+    worktreePath: sourceTask.worktreePath,
+    permissionMode: sourceTask.permissionMode,
+    model: sourceTask.model,
+    status: 'stopped',
+    createdAt: new Date().toISOString(),
+  };
+
+  storage.addTask(task);
+  treeProvider.refresh();
+
+  // Spawn fresh session (no --continue, no --fork-session)
   await spawnTask(task);
 }
 

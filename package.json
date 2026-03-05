@@ -93,9 +93,15 @@
         "category": "Swarm"
       },
       {
-        "command": "swarm.forkTask",
-        "title": "Fork Task",
+        "command": "swarm.forkSession",
+        "title": "Fork Session",
         "icon": "$(repo-forked)",
+        "category": "Swarm"
+      },
+      {
+        "command": "swarm.newSessionInBranch",
+        "title": "New Session in Branch",
+        "icon": "$(add)",
         "category": "Swarm"
       }
     ],
@@ -144,9 +150,14 @@
           "group": "git@3"
         },
         {
-          "command": "swarm.forkTask",
-          "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
-          "group": "fork"
+          "command": "swarm.forkSession",
+          "when": "view == swarmTasks && viewItem =~ /^task/",
+          "group": "fork@1"
+        },
+        {
+          "command": "swarm.newSessionInBranch",
+          "when": "view == swarmTasks && viewItem =~ /^task/",
+          "group": "fork@2"
         },
         {
           "command": "swarm.deleteTask",
