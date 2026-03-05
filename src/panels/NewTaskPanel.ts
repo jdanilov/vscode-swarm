@@ -129,15 +129,16 @@ export class NewTaskPanel {
       margin-bottom: 28px;
     }
     .header-icon {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 12px;
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 16px;
       color: var(--vscode-foreground);
       opacity: 0.8;
     }
     .header-icon i {
-      font-size: 48px;
-      line-height: 48px;
+      font-size: 72px !important;
+      line-height: 72px !important;
+      display: block;
     }
     .header h2 {
       font-weight: 600;
@@ -303,7 +304,7 @@ export class NewTaskPanel {
 <body>
   <div class="container">
     <div class="header">
-      <div class="header-icon"><i class="codicon codicon-organization"></i></div>
+      <div class="header-icon"><i class="codicon codicon-hubot"></i></div>
       <h2>New Task</h2>
     </div>
     <form id="taskForm">
