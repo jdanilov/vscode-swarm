@@ -124,4 +124,48 @@ export class TaskGitService {
       return false;
     }
   }
+
+  /**
+   * Merge base branch into task's branch (pull latest from base).
+   */
+  async mergeBaseInto(task: Task, _projectPath: string): Promise<boolean> {
+    if (!task.worktreePath) {
+      vscode.window.showErrorMessage('Merge is only available for worktree tasks');
+      return false;
+    }
+
+    if (!task.baseBranch) {
+      vscode.window.showErrorMessage('No base branch found for this task');
+      return false;
+    }
+
+    const confirm = await vscode.window.showWarningMessage(
+      `Merge "${task.baseBranch}" into "${task.branch}"?`,
+      { modal: true },
+      'Merge',
+    );
+    if (confirm !== 'Merge') return false;
+
+    try {
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: `Merging ${task.baseBranch} into ${task.branch}...`,
+        },
+        async () => {
+          // Fetch latest from origin
+          await git(['fetch', 'origin', task.baseBranch], task.worktreePath!);
+          // Merge origin/baseBranch into current branch
+          await git(['merge', `origin/${task.baseBranch}`], task.worktreePath!);
+        },
+      );
+      vscode.window.showInformationMessage(
+        `Merged ${task.baseBranch} into ${task.branch}`,
+      );
+      return true;
+    } catch (err: unknown) {
+      vscode.window.showErrorMessage(`Merge failed: ${getErrorMessage(err)}`);
+      return false;
+    }
+  }
 }

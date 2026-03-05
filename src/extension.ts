@@ -80,6 +80,9 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('swarm.commitTask', (item: TaskItem) => commitTask(item)),
     vscode.commands.registerCommand('swarm.syncTask', (item: TaskItem) => syncTask(item)),
     vscode.commands.registerCommand('swarm.mergeTask', (item: TaskItem) => mergeTask(item)),
+    vscode.commands.registerCommand('swarm.mergeBaseIntoTask', (item: TaskItem) =>
+      mergeBaseIntoTask(item),
+    ),
     vscode.commands.registerCommand('swarm.newTaskInBranch', (item: TaskItem) =>
       newTaskInBranch(item),
     ),
@@ -288,6 +291,15 @@ async function mergeTask(item: TaskItem) {
     return;
   }
   await taskGitService.merge(item.task, projectPath);
+}
+
+async function mergeBaseIntoTask(item: TaskItem) {
+  const projectPath = getProjectPath();
+  if (!projectPath) {
+    vscode.window.showErrorMessage('No workspace folder open');
+    return;
+  }
+  await taskGitService.mergeBaseInto(item.task, projectPath);
 }
 
 /**

@@ -55,7 +55,7 @@ This document tracks features from the Dash Electron app (`/opt/ed/dash`) that s
 
 ## Git Operations
 
-10. **Merge Base Into Branch**
+10. ~~**Merge Base Into Branch**~~ ✅ IMPLEMENTED
     - Pull latest changes from base branch into worktree
     - Inverse of current "Merge to Base" operation
     - Location in Dash: `src/main/services/gitService.ts` (`mergeBaseIntoBranch`)
@@ -72,10 +72,11 @@ This document tracks features from the Dash Electron app (`/opt/ed/dash`) that s
 ## Already Implemented
 
 - [x] New Task in Branch (creates new task in same branch with fresh Claude context)
+- [x] Merge Base Into Branch (pull latest from base branch into worktree)
 
 ## Covered by VS Code
 
-The following Dash features are already covered by VS Code or extensions:
+The following features are already covered by VS Code or extensions:
 
 - Commit graph visualization (GitLens, Git Graph extensions)
 - Diff viewer (VS Code built-in)

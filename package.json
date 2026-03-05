@@ -94,6 +94,12 @@
         "category": "Swarm"
       },
       {
+        "command": "swarm.mergeBaseIntoTask",
+        "title": "Merge Base Into Branch",
+        "icon": "$(git-pull-request)",
+        "category": "Swarm"
+      },
+      {
         "command": "swarm.newTaskInBranch",
         "title": "New Task in Branch",
         "icon": "$(repo-forked)",
@@ -145,14 +151,19 @@
           "group": "git@3"
         },
         {
+          "command": "swarm.mergeBaseIntoTask",
+          "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
+          "group": "git@4"
+        },
+        {
           "command": "swarm.newTaskInBranch",
           "when": "view == swarmTasks && viewItem =~ /^task/",
-          "group": "fork"
+          "group": "navigation@2"
         },
         {
           "command": "swarm.deleteTask",
           "when": "view == swarmTasks && viewItem =~ /^task/",
-          "group": "danger"
+          "group": "z_danger"
         }
       ]
     },

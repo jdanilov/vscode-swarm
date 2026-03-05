@@ -126,8 +126,11 @@ export class NewTaskPanel {
       margin-bottom: 28px;
     }
     .header-icon {
-      font-size: 48px;
-      margin-bottom: 12px;
+      width: 80px;
+      height: 80px;
+      font-size: 80px;
+      line-height: 80px;
+      margin: 0 auto 12px;
       color: var(--vscode-foreground);
       opacity: 0.8;
     }
@@ -294,7 +297,7 @@ export class NewTaskPanel {
 
       <div class="form-group">
         <div class="checkbox-group">
-          <input type="checkbox" id="useWorktree" name="useWorktree" checked>
+          <input type="checkbox" id="useWorktree" name="useWorktree">
           <label for="useWorktree">Create isolated git worktree</label>
         </div>
       </div>
