@@ -446,6 +446,12 @@ async function newTaskInBranch(item: TaskItem) {
   storage.addTask(task);
   treeProvider.refresh();
 
+  // Focus the new task in the tree view
+  const taskItem = treeProvider.getTaskItem(task.id);
+  if (taskItem) {
+    treeView.reveal(taskItem, { select: true, focus: true });
+  }
+
   // Spawn fresh session (no --continue, no --fork-session)
   await spawnTask(task);
 }
