@@ -60,10 +60,20 @@ export class TaskGitService {
           title: `Syncing ${branch}...`,
         },
         async () => {
-          await git(['pull', '--rebase'], cwd);
+          // Try to pull with rebase, but handle case where remote branch doesn't exist yet
           if (task.branch) {
+            try {
+              await git(['pull', '--rebase', 'origin', task.branch], cwd);
+            } catch (err: unknown) {
+              const msg = getErrorMessage(err);
+              // Ignore if remote branch doesn't exist yet - we'll create it on push
+              if (!msg.includes("couldn't find remote ref")) {
+                throw err;
+              }
+            }
             await git(['push', '-u', 'origin', task.branch], cwd);
           } else {
+            await git(['pull', '--rebase'], cwd);
             await git(['push'], cwd);
           }
         },
