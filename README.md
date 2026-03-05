@@ -2,6 +2,8 @@
 
 Run multiple Claude Code agents in parallel, each in its own git worktree.
 
+![New Task](images/screen-1.png)
+
 ## Features
 
 - **Parallel Agents**: Spawn multiple Claude Code sessions simultaneously
@@ -9,6 +11,10 @@ Run multiple Claude Code agents in parallel, each in its own git worktree.
 - **Activity Tracking**: Monitor agent status (busy/idle/stopped) in the sidebar
 - **Git Integration**: Commit, push, and merge task branches from the context menu
 - **Session Persistence**: Resume conversations after VS Code restarts
+
+![Task Running](images/screen-2.png)
+
+![Context Menu](images/screen-3.png)
 
 ## Usage
 
