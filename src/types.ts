@@ -13,6 +13,7 @@ export interface Task {
   model: Model;
   status: TaskStatus;
   createdAt: string;
+  archivedAt?: string; // ISO timestamp when archived, undefined = active
 }
 
 export interface SwarmState {

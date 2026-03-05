@@ -8,8 +8,22 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskItem> {
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private gitStatsService = new GitStatsService();
+  private _showArchived = false;
 
   constructor(private storage: StorageService) {}
+
+  get showArchived(): boolean {
+    return this._showArchived;
+  }
+
+  setShowArchived(show: boolean): void {
+    this._showArchived = show;
+    this._onDidChangeTreeData.fire();
+  }
+
+  hasArchivedTasks(): boolean {
+    return this.storage.hasArchivedTasks();
+  }
 
   /**
    * Get the effective git path for a task.
@@ -54,7 +68,10 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskItem> {
   }
 
   getChildren(): TaskItem[] {
-    const tasks = this.storage.getTasks();
+    const tasks = this._showArchived
+      ? this.storage.getArchivedTasks()
+      : this.storage.getActiveTasks();
+
     if (tasks.length === 0) {
       return [];
     }
@@ -123,7 +140,8 @@ export class TaskItem extends vscode.TreeItem {
 
     // Context value for menu visibility rules
     const worktreeFlag = task.worktreePath ? '-worktree' : '';
-    this.contextValue = `task-${task.status}${worktreeFlag}`;
+    const archivedFlag = task.archivedAt ? '-archived' : '';
+    this.contextValue = `task-${task.status}${worktreeFlag}${archivedFlag}`;
   }
 
   private buildDescription(): string {

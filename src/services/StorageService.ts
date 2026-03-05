@@ -61,4 +61,32 @@ export class StorageService {
     this.state.tasks = this.state.tasks.filter((t) => t.id !== id);
     this.save();
   }
+
+  archiveTask(id: string): void {
+    const task = this.state.tasks.find((t) => t.id === id);
+    if (task) {
+      task.archivedAt = new Date().toISOString();
+      this.save();
+    }
+  }
+
+  restoreTask(id: string): void {
+    const task = this.state.tasks.find((t) => t.id === id);
+    if (task) {
+      delete task.archivedAt;
+      this.save();
+    }
+  }
+
+  getActiveTasks(): Task[] {
+    return this.state.tasks.filter((t) => !t.archivedAt);
+  }
+
+  getArchivedTasks(): Task[] {
+    return this.state.tasks.filter((t) => t.archivedAt);
+  }
+
+  hasArchivedTasks(): boolean {
+    return this.state.tasks.some((t) => t.archivedAt);
+  }
 }
