@@ -1,19 +1,19 @@
 /**
- * Git operations for tasks (commit, sync, merge).
- * Extracted from extension.ts for better separation of concerns.
+ * Git operations for tasks with VS Code UI integration.
+ * Uses pure GitOperations and adds progress indicators and notifications.
  */
 
 import * as vscode from 'vscode';
 import { Task } from '../types';
-import { git } from '../utils/gitUtils';
-import { getErrorMessage } from '../utils/errorUtils';
+import { getTaskCwd } from '../utils/taskUtils';
+import * as GitOps from './GitOperations';
 
 export class TaskGitService {
   /**
    * Commit all changes in a task's working directory.
    */
   async commit(task: Task, projectPath: string): Promise<boolean> {
-    const cwd = task.worktreePath || projectPath;
+    const cwd = getTaskCwd(task, projectPath);
 
     const message = await vscode.window.showInputBox({
       prompt: 'Commit message',
@@ -22,66 +22,49 @@ export class TaskGitService {
     });
     if (!message) return false;
 
-    try {
-      await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: `Committing changes in ${task.name}...`,
-        },
-        async () => {
-          await git(['add', '-A'], cwd);
-          await git(['commit', '-m', message], cwd);
-        },
-      );
+    const result = await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `Committing changes in ${task.name}...`,
+      },
+      () => GitOps.commitAll(cwd, message),
+    );
+
+    if (result.success) {
       vscode.window.showInformationMessage(`Committed: ${message}`);
       return true;
-    } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      if (msg.includes('nothing to commit')) {
-        vscode.window.showInformationMessage('Nothing to commit');
-      } else {
-        vscode.window.showErrorMessage(`Commit failed: ${msg}`);
-      }
-      return false;
     }
+
+    if (result.nothingToCommit) {
+      vscode.window.showInformationMessage('Nothing to commit');
+    } else {
+      vscode.window.showErrorMessage(`Commit failed: ${result.error}`);
+    }
+    return false;
   }
 
   /**
    * Sync a task's branch with origin (pull then push).
    */
   async sync(task: Task, projectPath: string): Promise<boolean> {
-    const cwd = task.worktreePath || projectPath;
+    const cwd = getTaskCwd(task, projectPath);
     const branch = task.branch || 'current branch';
 
-    try {
-      await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: `Syncing ${branch}...`,
-        },
-        async () => {
-          // Check if remote branch exists before trying to pull
-          if (task.branch) {
-            try {
-              await git(['ls-remote', '--exit-code', 'origin', task.branch], cwd);
-              // Remote branch exists, pull first
-              await git(['pull', '--rebase', 'origin', task.branch], cwd);
-            } catch {
-              // Remote branch doesn't exist yet, skip pull
-            }
-            await git(['push', '-u', 'origin', task.branch], cwd);
-          } else {
-            await git(['pull', '--rebase'], cwd);
-            await git(['push'], cwd);
-          }
-        },
-      );
+    const result = await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `Syncing ${branch}...`,
+      },
+      () => GitOps.syncBranch(cwd, task.branch || undefined),
+    );
+
+    if (result.success) {
       vscode.window.showInformationMessage(`Synced ${branch} with origin`);
       return true;
-    } catch (err: unknown) {
-      vscode.window.showErrorMessage(`Sync failed: ${getErrorMessage(err)}`);
-      return false;
     }
+
+    vscode.window.showErrorMessage(`Sync failed: ${result.error}`);
+    return false;
   }
 
   /**
@@ -103,27 +86,23 @@ export class TaskGitService {
       return false;
     }
 
-    try {
-      await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: `Merging ${task.branch} into ${task.baseBranch}...`,
-        },
-        async () => {
-          await git(['checkout', task.baseBranch], projectPath);
-          await git(['pull'], projectPath);
-          await git(['merge', task.branch], projectPath);
-          await git(['push'], projectPath);
-        },
-      );
+    const result = await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `Merging ${task.branch} into ${task.baseBranch}...`,
+      },
+      () => GitOps.mergeBranchInto(projectPath, task.branch, task.baseBranch),
+    );
+
+    if (result.success) {
       vscode.window.showInformationMessage(
         `Merged ${task.branch} into ${task.baseBranch} and pushed`,
       );
       return true;
-    } catch (err: unknown) {
-      vscode.window.showErrorMessage(`Merge failed: ${getErrorMessage(err)}`);
-      return false;
     }
+
+    vscode.window.showErrorMessage(`Merge failed: ${result.error}`);
+    return false;
   }
 
   /**
@@ -140,26 +119,20 @@ export class TaskGitService {
       return false;
     }
 
-    try {
-      await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: `Merging ${task.baseBranch} into ${task.branch}...`,
-        },
-        async () => {
-          // Fetch latest from origin
-          await git(['fetch', 'origin', task.baseBranch], task.worktreePath!);
-          // Merge origin/baseBranch into current branch
-          await git(['merge', `origin/${task.baseBranch}`], task.worktreePath!);
-        },
-      );
-      vscode.window.showInformationMessage(
-        `Merged ${task.baseBranch} into ${task.branch}`,
-      );
+    const result = await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `Merging ${task.baseBranch} into ${task.branch}...`,
+      },
+      () => GitOps.mergeBaseIntoBranch(task.worktreePath!, task.baseBranch),
+    );
+
+    if (result.success) {
+      vscode.window.showInformationMessage(`Merged ${task.baseBranch} into ${task.branch}`);
       return true;
-    } catch (err: unknown) {
-      vscode.window.showErrorMessage(`Merge failed: ${getErrorMessage(err)}`);
-      return false;
     }
+
+    vscode.window.showErrorMessage(`Merge failed: ${result.error}`);
+    return false;
   }
 }
