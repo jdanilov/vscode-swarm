@@ -122,6 +122,12 @@
         "title": "New Task in Branch",
         "icon": "$(repo-forked)",
         "category": "Swarm"
+      },
+      {
+        "command": "swarm.renameTask",
+        "title": "Rename Task",
+        "icon": "$(edit)",
+        "category": "Swarm"
       }
     ],
     "menus": {
@@ -179,9 +185,14 @@
           "group": "git@4"
         },
         {
-          "command": "swarm.newTaskInBranch",
+          "command": "swarm.renameTask",
           "when": "view == swarmTasks && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
           "group": "navigation@2"
+        },
+        {
+          "command": "swarm.newTaskInBranch",
+          "when": "view == swarmTasks && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
+          "group": "navigation@3"
         },
         {
           "command": "swarm.archiveTask",

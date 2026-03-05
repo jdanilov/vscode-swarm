@@ -16,6 +16,7 @@ export class NewTaskPanel {
 
   private _defaultModel: Model = 'opus';
   private _defaultPermissionMode: PermissionMode = 'fullAuto';
+  private _worktreeBasePath: string = '../worktrees';
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._panel = panel;
@@ -28,6 +29,7 @@ export class NewTaskPanel {
     extensionUri: vscode.Uri,
     defaultModel: Model,
     defaultPermissionMode: PermissionMode,
+    worktreeBasePath: string,
     onSubmit: (data: NewTaskFormData) => void,
     onCancel: () => void,
   ): NewTaskPanel {
@@ -53,6 +55,7 @@ export class NewTaskPanel {
     NewTaskPanel.currentPanel = new NewTaskPanel(panel, extensionUri);
     NewTaskPanel.currentPanel._defaultModel = defaultModel;
     NewTaskPanel.currentPanel._defaultPermissionMode = defaultPermissionMode;
+    NewTaskPanel.currentPanel._worktreeBasePath = worktreeBasePath;
     NewTaskPanel.currentPanel._panel.webview.html = NewTaskPanel.currentPanel._getHtmlForWebview();
 
     // Handle messages from the webview
@@ -280,6 +283,17 @@ export class NewTaskPanel {
     .error.visible {
       display: block;
     }
+    .worktree-path {
+      font-size: 0.8em;
+      color: var(--vscode-descriptionForeground);
+      margin-top: 6px;
+      padding-left: 26px;
+      display: none;
+      word-break: break-all;
+    }
+    .worktree-path.visible {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -300,6 +314,7 @@ export class NewTaskPanel {
           <input type="checkbox" id="useWorktree" name="useWorktree">
           <label for="useWorktree">Create isolated git worktree</label>
         </div>
+        <div class="worktree-path" id="worktreePath"></div>
       </div>
 
       <div class="form-group">
@@ -360,9 +375,38 @@ export class NewTaskPanel {
     const nameInput = document.getElementById('name');
     const nameError = document.getElementById('nameError');
     const cancelBtn = document.getElementById('cancelBtn');
+    const useWorktreeCheckbox = document.getElementById('useWorktree');
+    const worktreePathEl = document.getElementById('worktreePath');
+    const worktreeBasePath = '${this._worktreeBasePath}';
 
     // Focus the name input on load
     requestAnimationFrame(() => nameInput.focus());
+
+    function slugify(text) {
+      return text
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 40);
+    }
+
+    function updateWorktreePath() {
+      if (!useWorktreeCheckbox.checked) {
+        worktreePathEl.classList.remove('visible');
+        return;
+      }
+      const name = nameInput.value.trim();
+      if (!name) {
+        worktreePathEl.textContent = worktreeBasePath + '/<task-name>-xxxx/';
+      } else {
+        const slug = slugify(name);
+        worktreePathEl.textContent = worktreeBasePath + '/' + slug + '-xxxx/';
+      }
+      worktreePathEl.classList.add('visible');
+    }
+
+    useWorktreeCheckbox.addEventListener('change', updateWorktreePath);
+    nameInput.addEventListener('input', updateWorktreePath);
 
     function getSelectedRadio(name) {
       const selected = document.querySelector('input[name="' + name + '"]:checked');

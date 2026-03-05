@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as crypto from 'crypto';
+import * as path from 'path';
 import { StorageService } from './services/StorageService';
 import { WorktreeService } from './services/WorktreeService';
 import { HookServer, ActivityEvent } from './services/HookServer';
@@ -16,6 +17,7 @@ let storage: StorageService;
 let worktreeService: WorktreeService;
 let taskGitService: TaskGitService;
 let treeProvider: TaskTreeProvider;
+let treeView: vscode.TreeView<TaskItem>;
 let extensionUri: vscode.Uri;
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -53,7 +55,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Tree view
   treeProvider = new TaskTreeProvider(storage);
-  const treeView = vscode.window.createTreeView('swarmTasks', {
+  treeView = vscode.window.createTreeView('swarmTasks', {
     treeDataProvider: treeProvider,
     showCollapseAll: false,
   });
@@ -89,6 +91,7 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('swarm.newTaskInBranch', (item: TaskItem) =>
       newTaskInBranch(item),
     ),
+    vscode.commands.registerCommand('swarm.renameTask', (item: TaskItem) => renameTask(item)),
   );
 
   // Update context for showing/hiding the toggle archived button
@@ -162,10 +165,14 @@ function newTask() {
   const defaultPermissionMode = config.get<PermissionMode>('defaultPermissionMode', 'fullAuto');
   const defaultModel = config.get<Model>('defaultModel', 'opus');
 
+  // Compute worktree base path for display
+  const worktreeBasePath = path.join(projectPath, '..', 'worktrees');
+
   NewTaskPanel.show(
     extensionUri,
     defaultModel,
     defaultPermissionMode,
+    worktreeBasePath,
     async (data: NewTaskFormData) => {
       await createTaskFromForm(projectPath, data);
     },
@@ -207,6 +214,12 @@ async function createTaskFromForm(projectPath: string, data: NewTaskFormData) {
 
   storage.addTask(task);
   treeProvider.refresh();
+
+  // Focus the new task in the tree view
+  const taskItem = treeProvider.getTaskItem(task.id);
+  if (taskItem) {
+    treeView.reveal(taskItem, { select: true, focus: true });
+  }
 
   // Auto-spawn the task
   await spawnTask(task);
@@ -321,6 +334,26 @@ async function switchWorktree(item: TaskItem) {
 
 async function resumeTask(item: TaskItem) {
   await spawnTask(item.task, true);
+}
+
+async function renameTask(item: TaskItem) {
+  const task = item.task;
+  const newName = await vscode.window.showInputBox({
+    title: 'Rename Task',
+    value: task.name,
+    prompt: 'Enter a new name for this task',
+    validateInput: (value) => {
+      if (!value || value.trim().length === 0) {
+        return 'Task name cannot be empty';
+      }
+      return null;
+    },
+  });
+
+  if (newName && newName.trim() !== task.name) {
+    storage.updateTask(task.id, { name: newName.trim() });
+    treeProvider.refresh();
+  }
 }
 
 async function commitTask(item: TaskItem) {
