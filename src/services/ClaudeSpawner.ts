@@ -16,12 +16,20 @@ export class ClaudeSpawner {
   /**
    * Spawn a new Claude Code session for a task.
    * @param resume - If true, use --continue to resume existing conversation
+   * @throws Error if worktree path doesn't exist
    */
   async spawn(task: Task, projectPath: string, resume = false): Promise<vscode.Terminal> {
     // Kill existing managed terminal for this task if any
     this.killTerminal(task.id);
 
     const cwd = task.worktreePath || projectPath;
+
+    // Validate that the working directory exists
+    if (!fs.existsSync(cwd)) {
+      throw new Error(
+        `Working directory does not exist: ${cwd}\n\nThe worktree may have been deleted externally. Please delete this task and create a new one.`,
+      );
+    }
 
     // Write hook config before spawning
     this.writeHookConfig(cwd, task.id);

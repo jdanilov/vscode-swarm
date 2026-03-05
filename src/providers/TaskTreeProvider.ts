@@ -11,6 +11,17 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskItem> {
 
   constructor(private storage: StorageService) {}
 
+  /**
+   * Get the effective git path for a task.
+   * Uses worktreePath if available, otherwise falls back to workspace root.
+   */
+  private getEffectivePath(task: Task): string | null {
+    if (task.worktreePath) {
+      return task.worktreePath;
+    }
+    return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? null;
+  }
+
   refresh(): void {
     // Invalidate all git stats cache on refresh to get fresh data
     this.gitStatsService.invalidate();
@@ -26,10 +37,13 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskItem> {
     this.gitStatsService.invalidate();
 
     const tasks = this.storage.getTasks();
-    const worktreePaths = tasks.map((t) => t.worktreePath).filter((p): p is string => p !== null);
+    const paths = tasks.map((t) => this.getEffectivePath(t)).filter((p): p is string => p !== null);
+
+    // Deduplicate paths (multiple non-worktree tasks share the same workspace root)
+    const uniquePaths = [...new Set(paths)];
 
     // Fetch all stats in parallel
-    await Promise.all(worktreePaths.map((p) => this.gitStatsService.fetchStats(p)));
+    await Promise.all(uniquePaths.map((p) => this.gitStatsService.fetchStats(p)));
 
     // Refresh tree to show updated stats
     this._onDidChangeTreeData.fire();
@@ -45,9 +59,10 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskItem> {
       return [];
     }
 
-    // Create TaskItems with cached stats
+    // Create TaskItems with cached stats using effective path
     const items = tasks.map((task) => {
-      const stats = this.gitStatsService.getCachedStats(task.worktreePath);
+      const effectivePath = this.getEffectivePath(task);
+      const stats = this.gitStatsService.getCachedStats(effectivePath);
       return new TaskItem(task, stats, this.gitStatsService);
     });
 
@@ -60,14 +75,17 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskItem> {
 
   private fetchMissingStats(tasks: Task[]): void {
     const missingPaths = tasks
-      .filter((t) => t.worktreePath && !this.gitStatsService.getCachedStats(t.worktreePath))
-      .map((t) => t.worktreePath!);
+      .map((t) => this.getEffectivePath(t))
+      .filter((p): p is string => p !== null && !this.gitStatsService.getCachedStats(p));
 
-    if (missingPaths.length > 0) {
+    // Deduplicate paths
+    const uniqueMissingPaths = [...new Set(missingPaths)];
+
+    if (uniqueMissingPaths.length > 0) {
       // Fetch stats asynchronously and refresh tree when done
-      Promise.all(missingPaths.map((p) => this.gitStatsService.fetchStats(p))).then(() => {
+      Promise.all(uniqueMissingPaths.map((p) => this.gitStatsService.fetchStats(p))).then(() => {
         // Only refresh if we actually got some stats
-        const hasNewStats = missingPaths.some((p) => this.gitStatsService.getCachedStats(p));
+        const hasNewStats = uniqueMissingPaths.some((p) => this.gitStatsService.getCachedStats(p));
         if (hasNewStats) {
           this._onDidChangeTreeData.fire();
         }
@@ -118,12 +136,10 @@ export class TaskItem extends vscode.TreeItem {
       parts.push(this.task.permissionMode);
     }
 
-    // Add git stats for worktree tasks
-    if (this.task.worktreePath) {
-      const statsStr = this.gitStatsService.formatStats(this.gitStats);
-      if (statsStr) {
-        parts.push(statsStr);
-      }
+    // Add git stats for all tasks (worktree or current workspace)
+    const statsStr = this.gitStatsService.formatStats(this.gitStats);
+    if (statsStr) {
+      parts.push(statsStr);
     }
 
     return parts.join(' · ');

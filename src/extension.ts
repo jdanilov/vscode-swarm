@@ -91,6 +91,14 @@ export async function activate(context: vscode.ExtensionContext) {
   // Handle tasks that were active before restart - resume sessions in orphaned terminals
   handleStaleTasksOnRestart(storage, treeProvider, spawner);
 
+  // Watch for git changes to auto-refresh stats
+  // .git/index changes on commits, staging, etc.
+  const gitWatcher = vscode.workspace.createFileSystemWatcher('**/.git/index');
+  gitWatcher.onDidChange(() => {
+    treeProvider.refreshGitStats();
+  });
+  context.subscriptions.push(gitWatcher);
+
   // Status bar
   const statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 50);
   statusBar.command = 'swarmTasks.focus';
