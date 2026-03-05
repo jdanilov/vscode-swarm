@@ -281,16 +281,15 @@ async function deleteTask(item: TaskItem) {
     : [];
   const willRemoveWorktree = task.worktreePath && siblingTasks.length === 0;
 
-  // Build confirmation message
-  let message = `Delete task "${task.name}"?`;
+  // Only confirm if worktree will be removed
   if (willRemoveWorktree) {
-    message += ' This will also remove the worktree.';
-  } else if (task.worktreePath && siblingTasks.length > 0) {
-    message += ` (worktree kept for ${siblingTasks.length} other task${siblingTasks.length > 1 ? 's' : ''})`;
+    const confirm = await vscode.window.showWarningMessage(
+      `Delete task "${task.name}"? This will also remove the worktree.`,
+      'Delete',
+      'Cancel',
+    );
+    if (confirm !== 'Delete') return;
   }
-
-  const confirm = await vscode.window.showWarningMessage(message, 'Delete', 'Cancel');
-  if (confirm !== 'Delete') return;
 
   // Kill terminal
   spawner.killTerminal(task.id);
