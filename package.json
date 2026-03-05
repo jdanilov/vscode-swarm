@@ -24,7 +24,7 @@
         {
           "id": "swarm",
           "title": "Swarm",
-          "icon": "$(layers)"
+          "icon": "$(organization)"
         }
       ]
     },
@@ -32,7 +32,7 @@
       "swarm": [
         {
           "id": "swarmTasks",
-          "name": "Tasks",
+          "name": "Swarm",
           "visibility": "visible"
         }
       ]

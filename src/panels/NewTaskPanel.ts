@@ -14,12 +14,14 @@ export class NewTaskPanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
 
+  private _defaultModel: Model = 'opus';
+  private _defaultPermissionMode: PermissionMode = 'fullAuto';
+
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._panel = panel;
     this._extensionUri = extensionUri;
 
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-    this._panel.webview.html = this._getHtmlForWebview();
   }
 
   public static show(
@@ -49,7 +51,9 @@ export class NewTaskPanel {
     );
 
     NewTaskPanel.currentPanel = new NewTaskPanel(panel, extensionUri);
-    NewTaskPanel.currentPanel._setDefaults(defaultModel, defaultPermissionMode);
+    NewTaskPanel.currentPanel._defaultModel = defaultModel;
+    NewTaskPanel.currentPanel._defaultPermissionMode = defaultPermissionMode;
+    NewTaskPanel.currentPanel._panel.webview.html = NewTaskPanel.currentPanel._getHtmlForWebview();
 
     // Handle messages from the webview
     panel.webview.onDidReceiveMessage(
@@ -72,14 +76,6 @@ export class NewTaskPanel {
     return NewTaskPanel.currentPanel;
   }
 
-  private _setDefaults(model: Model, permissionMode: PermissionMode) {
-    this._panel.webview.postMessage({
-      command: 'setDefaults',
-      model,
-      permissionMode,
-    });
-  }
-
   public dispose() {
     NewTaskPanel.currentPanel = undefined;
     this._panel.dispose();
@@ -92,12 +88,16 @@ export class NewTaskPanel {
   }
 
   private _getHtmlForWebview(): string {
+    const model = this._defaultModel;
+    const perm = this._defaultPermissionMode;
+
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>New Task</title>
+  <link rel="stylesheet" href="https://unpkg.com/@vscode/codicons/dist/codicon.css">
   <style>
     * {
       box-sizing: border-box;
@@ -121,9 +121,17 @@ export class NewTaskPanel {
       width: 100%;
       max-width: 420px;
     }
-    h2 {
+    .header {
       text-align: center;
       margin-bottom: 28px;
+    }
+    .header-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      color: var(--vscode-foreground);
+      opacity: 0.8;
+    }
+    .header h2 {
       font-weight: 600;
       font-size: 1.3em;
       color: var(--vscode-foreground);
@@ -273,11 +281,14 @@ export class NewTaskPanel {
 </head>
 <body>
   <div class="container">
-    <h2>New Task</h2>
+    <div class="header">
+      <div class="header-icon"><i class="codicon codicon-organization"></i></div>
+      <h2>New Task</h2>
+    </div>
     <form id="taskForm">
       <div class="form-group">
         <span class="form-group-label">Task Name</span>
-        <input type="text" id="name" name="name" placeholder="e.g. fix-auth-bug" required autofocus>
+        <input type="text" id="name" name="name" placeholder="e.g. fix-auth-bug" required>
         <div class="error" id="nameError">Task name is required</div>
       </div>
 
@@ -292,15 +303,15 @@ export class NewTaskPanel {
         <span class="form-group-label">Model</span>
         <div class="radio-group">
           <div class="radio-option">
-            <input type="radio" id="model-opus" name="model" value="opus">
+            <input type="radio" id="model-opus" name="model" value="opus"${model === 'opus' ? ' checked' : ''}>
             <label for="model-opus">Opus</label>
           </div>
           <div class="radio-option">
-            <input type="radio" id="model-sonnet" name="model" value="sonnet">
+            <input type="radio" id="model-sonnet" name="model" value="sonnet"${model === 'sonnet' ? ' checked' : ''}>
             <label for="model-sonnet">Sonnet</label>
           </div>
           <div class="radio-option">
-            <input type="radio" id="model-haiku" name="model" value="haiku">
+            <input type="radio" id="model-haiku" name="model" value="haiku"${model === 'haiku' ? ' checked' : ''}>
             <label for="model-haiku">Haiku</label>
           </div>
         </div>
@@ -310,21 +321,21 @@ export class NewTaskPanel {
         <span class="form-group-label">Permission Mode</span>
         <div class="radio-group">
           <div class="radio-option">
-            <input type="radio" id="perm-plan" name="permissionMode" value="plan">
+            <input type="radio" id="perm-plan" name="permissionMode" value="plan"${perm === 'plan' ? ' checked' : ''}>
             <label for="perm-plan">
               Plan
               <div class="radio-description">Ask first</div>
             </label>
           </div>
           <div class="radio-option">
-            <input type="radio" id="perm-autoEdit" name="permissionMode" value="autoEdit">
+            <input type="radio" id="perm-autoEdit" name="permissionMode" value="autoEdit"${perm === 'autoEdit' ? ' checked' : ''}>
             <label for="perm-autoEdit">
               Auto Edit
               <div class="radio-description">Auto edits</div>
             </label>
           </div>
           <div class="radio-option">
-            <input type="radio" id="perm-fullAuto" name="permissionMode" value="fullAuto">
+            <input type="radio" id="perm-fullAuto" name="permissionMode" value="fullAuto"${perm === 'fullAuto' ? ' checked' : ''}>
             <label for="perm-fullAuto">
               Full Auto
               <div class="radio-description">No prompts</div>
@@ -347,26 +358,13 @@ export class NewTaskPanel {
     const nameError = document.getElementById('nameError');
     const cancelBtn = document.getElementById('cancelBtn');
 
+    // Focus the name input on load
+    requestAnimationFrame(() => nameInput.focus());
+
     function getSelectedRadio(name) {
       const selected = document.querySelector('input[name="' + name + '"]:checked');
       return selected ? selected.value : null;
     }
-
-    function setSelectedRadio(name, value) {
-      const radio = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
-      if (radio) {
-        radio.checked = true;
-      }
-    }
-
-    // Handle defaults from extension
-    window.addEventListener('message', event => {
-      const message = event.data;
-      if (message.command === 'setDefaults') {
-        setSelectedRadio('model', message.model);
-        setSelectedRadio('permissionMode', message.permissionMode);
-      }
-    });
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
