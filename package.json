@@ -94,13 +94,13 @@
       },
       {
         "command": "swarm.forkSession",
-        "title": "Fork Session",
+        "title": "Fork Task",
         "icon": "$(repo-forked)",
         "category": "Swarm"
       },
       {
         "command": "swarm.newSessionInBranch",
-        "title": "New Session in Branch",
+        "title": "New Task in Branch",
         "icon": "$(add)",
         "category": "Swarm"
       }

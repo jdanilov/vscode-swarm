@@ -6,7 +6,7 @@ This document tracks features from the Dash Electron app (`/opt/ed/dash`) that s
 
 1. ~~**`--fork-session` flag**~~ ✅ DONE
    - Pass this flag when spawning forked tasks so Claude properly forks the session context
-   - Implemented as "Fork Session" command
+   - Implemented as "Fork Task" command
 
 2. **Task Archiving**
    - Soft-delete with restore capability instead of permanent deletion
@@ -72,8 +72,8 @@ This document tracks features from the Dash Electron app (`/opt/ed/dash`) that s
 
 ## Already Implemented
 
-- [x] Fork Session (creates new task that forks source task's Claude context with `--continue --fork-session`)
-- [x] New Session in Branch (creates new task in same branch with fresh context)
+- [x] Fork Task (creates new task that forks source task's Claude context with `--continue --fork-session`)
+- [x] New Task in Branch (creates new task in same branch with fresh context)
 
 ## Covered by VS Code
 
