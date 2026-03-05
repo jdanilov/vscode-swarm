@@ -81,9 +81,9 @@
         "category": "Swarm"
       },
       {
-        "command": "swarm.pushTask",
-        "title": "Push",
-        "icon": "$(cloud-upload)",
+        "command": "swarm.syncTask",
+        "title": "Sync",
+        "icon": "$(sync)",
         "category": "Swarm"
       },
       {
@@ -124,12 +124,12 @@
         },
         {
           "command": "swarm.commitTask",
-          "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
+          "when": "view == swarmTasks && viewItem =~ /^task/",
           "group": "git@1"
         },
         {
-          "command": "swarm.pushTask",
-          "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
+          "command": "swarm.syncTask",
+          "when": "view == swarmTasks && viewItem =~ /^task/",
           "group": "git@2"
         },
         {

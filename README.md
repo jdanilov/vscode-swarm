@@ -43,6 +43,11 @@ Right-click a task for:
 - `swarm.preservedFiles`: Files to copy to new worktrees (.env, etc.)
 - `swarm.notifications`: Show notifications when tasks complete
 
+## Suggested Extensions
+
+- `Git Worktree Manager`: to manage worktrees created by Swarm agents
+- `Claude Code for VS Code`: to integrate Claude Code into VSCode
+
 ## License
 
 MIT

@@ -1,5 +1,5 @@
 /**
- * Git operations for tasks (commit, push, merge).
+ * Git operations for tasks (commit, sync, merge).
  * Extracted from extension.ts for better separation of concerns.
  */
 
@@ -10,13 +10,10 @@ import { getErrorMessage } from '../utils/errorUtils';
 
 export class TaskGitService {
   /**
-   * Commit all changes in a task's worktree.
+   * Commit all changes in a task's working directory.
    */
-  async commit(task: Task): Promise<boolean> {
-    if (!task.worktreePath) {
-      vscode.window.showErrorMessage('Commit is only available for worktree tasks');
-      return false;
-    }
+  async commit(task: Task, projectPath: string): Promise<boolean> {
+    const cwd = task.worktreePath || projectPath;
 
     const message = await vscode.window.showInputBox({
       prompt: 'Commit message',
@@ -32,8 +29,8 @@ export class TaskGitService {
           title: `Committing changes in ${task.name}...`,
         },
         async () => {
-          await git(['add', '-A'], task.worktreePath!);
-          await git(['commit', '-m', message], task.worktreePath!);
+          await git(['add', '-A'], cwd);
+          await git(['commit', '-m', message], cwd);
         },
       );
       vscode.window.showInformationMessage(`Committed: ${message}`);
@@ -50,31 +47,31 @@ export class TaskGitService {
   }
 
   /**
-   * Push a task's branch to origin.
+   * Sync a task's branch with origin (pull then push).
    */
-  async push(task: Task): Promise<boolean> {
-    if (!task.worktreePath) {
-      vscode.window.showErrorMessage('Push is only available for worktree tasks');
-      return false;
-    }
-
-    if (!task.branch) {
-      vscode.window.showErrorMessage('No branch found for this task');
-      return false;
-    }
+  async sync(task: Task, projectPath: string): Promise<boolean> {
+    const cwd = task.worktreePath || projectPath;
+    const branch = task.branch || 'current branch';
 
     try {
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: `Pushing ${task.branch}...`,
+          title: `Syncing ${branch}...`,
         },
-        () => git(['push', '-u', 'origin', task.branch], task.worktreePath!),
+        async () => {
+          await git(['pull', '--rebase'], cwd);
+          if (task.branch) {
+            await git(['push', '-u', 'origin', task.branch], cwd);
+          } else {
+            await git(['push'], cwd);
+          }
+        },
       );
-      vscode.window.showInformationMessage(`Pushed ${task.branch} to origin`);
+      vscode.window.showInformationMessage(`Synced ${branch} with origin`);
       return true;
     } catch (err: unknown) {
-      vscode.window.showErrorMessage(`Push failed: ${getErrorMessage(err)}`);
+      vscode.window.showErrorMessage(`Sync failed: ${getErrorMessage(err)}`);
       return false;
     }
   }

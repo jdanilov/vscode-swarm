@@ -78,7 +78,7 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('swarm.resumeTask', (item: TaskItem) => resumeTask(item)),
     vscode.commands.registerCommand('swarm.refreshTasks', () => treeProvider.refresh()),
     vscode.commands.registerCommand('swarm.commitTask', (item: TaskItem) => commitTask(item)),
-    vscode.commands.registerCommand('swarm.pushTask', (item: TaskItem) => pushTask(item)),
+    vscode.commands.registerCommand('swarm.syncTask', (item: TaskItem) => syncTask(item)),
     vscode.commands.registerCommand('swarm.mergeTask', (item: TaskItem) => mergeTask(item)),
   );
 
@@ -97,7 +97,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (total === 0) {
       statusBar.hide();
     } else {
-      statusBar.text = `$(layers) ${busy}/${total} agents`;
+      statusBar.text = `$(organization) ${busy}/${total} agents`;
       statusBar.tooltip = `Swarm: ${busy} busy, ${total - busy} idle`;
       statusBar.show();
     }
@@ -247,14 +247,24 @@ async function resumeTask(item: TaskItem) {
 }
 
 async function commitTask(item: TaskItem) {
-  const success = await taskGitService.commit(item.task);
+  const projectPath = getProjectPath();
+  if (!projectPath) {
+    vscode.window.showErrorMessage('No workspace folder open');
+    return;
+  }
+  const success = await taskGitService.commit(item.task, projectPath);
   if (success) {
     treeProvider.refreshGitStats();
   }
 }
 
-async function pushTask(item: TaskItem) {
-  await taskGitService.push(item.task);
+async function syncTask(item: TaskItem) {
+  const projectPath = getProjectPath();
+  if (!projectPath) {
+    vscode.window.showErrorMessage('No workspace folder open');
+    return;
+  }
+  await taskGitService.sync(item.task, projectPath);
 }
 
 async function mergeTask(item: TaskItem) {
