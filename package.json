@@ -1,10 +1,11 @@
 {
   "name": "vscode-swarm",
-  "displayName": "Swarm",
+  "displayName": "Swarm for Claude Code",
   "description": "Run multiple Claude Code agents in parallel, each in its own git worktree",
   "version": "0.1.0",
   "publisher": "jdanilov",
   "license": "MIT",
+  "icon": "images/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/jdanilov/vscode-swarm"
@@ -13,7 +14,19 @@
     "vscode": "^1.85.0"
   },
   "categories": [
+    "Machine Learning",
     "Other"
+  ],
+  "keywords": [
+    "claude",
+    "claude code",
+    "ai",
+    "agent",
+    "worktree",
+    "parallel",
+    "anthropic",
+    "llm",
+    "coding assistant"
   ],
   "activationEvents": [
     "onStartupFinished"
