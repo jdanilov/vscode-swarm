@@ -4,6 +4,7 @@
   "description": "Run multiple Claude Code agents in parallel, each in its own git worktree",
   "version": "0.1.0",
   "publisher": "jdanilov",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/jdanilov/vscode-swarm"

@@ -23,6 +23,18 @@
       "model": "opus",
       "status": "idle",
       "createdAt": "2026-03-05T13:30:16.489Z"
+    },
+    {
+      "id": "2f0995c51274",
+      "sessionId": "e4449d9b-c32f-4488-86cf-f78dca52388d",
+      "name": "forking (2)",
+      "branch": "forking-91f5",
+      "baseBranch": "main",
+      "worktreePath": "/opt/ed/worktrees/forking-91f5",
+      "permissionMode": "fullAuto",
+      "model": "opus",
+      "status": "idle",
+      "createdAt": "2026-03-05T13:57:51.519Z"
     }
   ]
 }
