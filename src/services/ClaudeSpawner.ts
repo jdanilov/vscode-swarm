@@ -56,6 +56,7 @@ export class ClaudeSpawner {
       cwd,
       env: { SWARM_TASK_ID: task.id },
       iconPath: new vscode.ThemeIcon('hubot'),
+      location: vscode.TerminalLocation.Editor,
     });
 
     terminal.show(false); // false = don't take focus
