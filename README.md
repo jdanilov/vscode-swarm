@@ -18,9 +18,9 @@ Run multiple Claude Code agents in parallel, each in its own git worktree.
 
 ## Usage
 
-1. Click the Swarm icon in the activity bar
-2. Click **+** to create a new task
-3. Choose whether to use a git worktree (recommended for parallel work)
+1. Click the Swarm panel in the activity bar
+2. Click **+** to create a new Swarm agent
+3. Choose model and whether to use a git worktree (recommended for parallel work)
 4. The agent starts automatically
 
 ### Task Options
@@ -31,7 +31,8 @@ Run multiple Claude Code agents in parallel, each in its own git worktree.
 
 ### Context Menu
 
-Right-click a task for:
+Right-click a task to:
+
 - Open Terminal
 - Open Worktree in New Window
 - Commit / Push / Merge to Base
@@ -39,8 +40,8 @@ Right-click a task for:
 
 ## Requirements
 
-- [Claude Code CLI](https://claude.ai/claude-code) installed and authenticated
 - Git
+- [Claude Code CLI](https://claude.ai/claude-code) installed and authenticated
 
 ## Extension Settings
 

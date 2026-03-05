@@ -30,6 +30,7 @@ This document tracks features from the Dash Electron app (`/opt/ed/dash`) that s
    - Manage reusable slash commands
    - Enable/disable per task
    - Location in Dash: `src/main/services/CommandLibraryService.ts`
+   - **See: [command-library-implementation.md](./command-library-implementation.md)** for detailed implementation plan
 
 6. **MCP Library**
    - Manage MCP server configurations
@@ -62,17 +63,12 @@ This document tracks features from the Dash Electron app (`/opt/ed/dash`) that s
 
 ## Nice to Have
 
-11. **Notification Sounds**
+11. ~~**Notification Sounds**~~ ✅ IMPLEMENTED
     - Audio alert when tasks complete
     - Configurable sound selection
     - Location in Dash: `src/renderer/hooks/useSettings.ts`
 
 ---
-
-## Already Implemented
-
-- [x] New Task in Branch (creates new task in same branch with fresh Claude context)
-- [x] Merge Base Into Branch (pull latest from base branch into worktree)
 
 ## Covered by VS Code
 
@@ -84,9 +80,3 @@ The following features are already covered by VS Code or extensions:
 - Terminal themes (VS Code settings)
 - Remote branch listing (VS Code Git integration)
 - Merge conflict resolution (VS Code built-in)
-
-## Not Needed
-
-- SQLite database (JSON file storage is sufficient)
-- Process-based activity polling (hook-based approach works well)
-- Project management (VS Code workspaces handle this)
