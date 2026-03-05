@@ -60,10 +60,18 @@ export class TaskGitService {
           title: `Syncing ${branch}...`,
         },
         async () => {
-          await git(['pull', '--rebase'], cwd);
+          // Check if remote branch exists before trying to pull
           if (task.branch) {
+            try {
+              await git(['ls-remote', '--exit-code', 'origin', task.branch], cwd);
+              // Remote branch exists, pull first
+              await git(['pull', '--rebase', 'origin', task.branch], cwd);
+            } catch {
+              // Remote branch doesn't exist yet, skip pull
+            }
             await git(['push', '-u', 'origin', task.branch], cwd);
           } else {
+            await git(['pull', '--rebase'], cwd);
             await git(['push'], cwd);
           }
         },
