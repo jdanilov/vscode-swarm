@@ -296,6 +296,7 @@ async function deleteTask(item: TaskItem) {
 
   storage.removeTask(task.id);
   treeProvider.refresh();
+  updateArchivedContext();
 }
 
 function openTerminal(item: TaskItem) {
@@ -364,13 +365,37 @@ async function mergeBaseIntoTask(item: TaskItem) {
 /**
  * New task in branch - create a new task in the same branch with a fresh Claude session.
  * Does NOT inherit conversation history from the source task.
- * Naming: "TaskName" -> "TaskName (2)" -> "TaskName (3)", etc.
+ * Naming: User can provide a suffix, or defaults to "(2)", "(3)", etc.
  */
 async function newTaskInBranch(item: TaskItem) {
   const sourceTask = item.task;
 
-  // Generate sibling name
-  const newName = generateSiblingName(sourceTask.name, storage.getTasks());
+  // Strip existing suffix pattern "(N)" from name to get base name
+  const baseNameMatch = sourceTask.name.match(/^(.+?)\s*\(\d+\)$/);
+  const baseName = baseNameMatch ? baseNameMatch[1].trim() : sourceTask.name;
+
+  // Ask user for optional suffix
+  const suffix = await vscode.window.showInputBox({
+    title: 'New Task in Branch',
+    prompt: 'Enter a suffix for the new task (leave empty for auto-numbering)',
+    placeHolder: 'e.g. "-test" or "Review" or leave empty',
+  });
+
+  // User cancelled
+  if (suffix === undefined) return;
+
+  // Generate task name based on suffix
+  let newName: string;
+  if (suffix === '') {
+    // Empty suffix - use auto-numbering (2), (3), etc.
+    newName = generateSiblingName(sourceTask.name, storage.getTasks());
+  } else if (suffix.startsWith('-')) {
+    // Starts with dash - append directly to base name
+    newName = baseName + suffix;
+  } else {
+    // Non-empty, no dash - append after a space
+    newName = baseName + ' ' + suffix;
+  }
 
   // Create new task sharing the same worktree/branch
   const task: Task = {
