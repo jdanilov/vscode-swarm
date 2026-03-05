@@ -39,6 +39,16 @@ export class ClaudeSpawner {
     const args = this.buildArgs(task, resume);
     const claudeCmd = [claudeBinary, ...args].join(' ');
 
+    // If resuming, create a fallback command that starts fresh if --continue fails
+    let fullCmd: string;
+    if (resume) {
+      const freshArgs = this.buildArgs(task, false);
+      const freshCmd = [claudeBinary, ...freshArgs].join(' ');
+      fullCmd = `${claudeCmd} || ${freshCmd}`;
+    } else {
+      fullCmd = claudeCmd;
+    }
+
     const terminalName = `Swarm: ${task.name}`;
 
     const terminal = vscode.window.createTerminal({
@@ -52,7 +62,7 @@ export class ClaudeSpawner {
 
     // Send command after short delay for terminal to initialize
     setTimeout(() => {
-      terminal.sendText(`clear && ${claudeCmd}`);
+      terminal.sendText(`clear && ${fullCmd}`);
     }, 50);
 
     this.terminals.set(task.id, terminal);
