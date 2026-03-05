@@ -91,6 +91,12 @@
         "title": "Merge to Base",
         "icon": "$(git-merge)",
         "category": "Swarm"
+      },
+      {
+        "command": "swarm.forkTask",
+        "title": "Fork Task",
+        "icon": "$(repo-forked)",
+        "category": "Swarm"
       }
     ],
     "menus": {
@@ -136,6 +142,11 @@
           "command": "swarm.mergeTask",
           "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
           "group": "git@3"
+        },
+        {
+          "command": "swarm.forkTask",
+          "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
+          "group": "fork"
         },
         {
           "command": "swarm.deleteTask",

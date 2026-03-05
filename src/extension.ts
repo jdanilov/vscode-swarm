@@ -80,6 +80,7 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('swarm.commitTask', (item: TaskItem) => commitTask(item)),
     vscode.commands.registerCommand('swarm.pushTask', (item: TaskItem) => pushTask(item)),
     vscode.commands.registerCommand('swarm.mergeTask', (item: TaskItem) => mergeTask(item)),
+    vscode.commands.registerCommand('swarm.forkTask', (item: TaskItem) => forkTask(item)),
   );
 
   // Handle tasks that were active before restart - resume sessions in orphaned terminals
@@ -264,6 +265,66 @@ async function mergeTask(item: TaskItem) {
     return;
   }
   await taskGitService.merge(item.task, projectPath);
+}
+
+/**
+ * Fork a task - create a new task in the same worktree/branch with a new Claude session.
+ * Naming: "TaskName" -> "TaskName (2)" -> "TaskName (3)", etc.
+ */
+async function forkTask(item: TaskItem) {
+  const sourceTask = item.task;
+
+  // Generate sibling name
+  const newName = generateSiblingName(sourceTask.name, storage.getTasks());
+
+  // Create new task sharing the same worktree
+  const task: Task = {
+    id: crypto.randomBytes(6).toString('hex'),
+    sessionId: crypto.randomUUID(),
+    name: newName,
+    branch: sourceTask.branch,
+    baseBranch: sourceTask.baseBranch,
+    worktreePath: sourceTask.worktreePath,
+    permissionMode: sourceTask.permissionMode,
+    model: sourceTask.model,
+    status: 'stopped',
+    createdAt: new Date().toISOString(),
+  };
+
+  storage.addTask(task);
+  treeProvider.refresh();
+
+  // Auto-spawn the forked task
+  await spawnTask(task);
+}
+
+/**
+ * Generate a sibling name for forked tasks.
+ * "My Task" -> "My Task (2)" -> "My Task (3)", etc.
+ */
+function generateSiblingName(sourceName: string, allTasks: Task[]): string {
+  // Strip existing suffix pattern "(N)" from name to get base name
+  const baseNameMatch = sourceName.match(/^(.+?)\s*\(\d+\)$/);
+  const baseName = baseNameMatch ? baseNameMatch[1].trim() : sourceName;
+
+  // Find all tasks with the same base name (including original and existing forks)
+  const siblingPattern = new RegExp(`^${escapeRegExp(baseName)}(\\s*\\(\\d+\\))?$`);
+  const siblings = allTasks.filter((t) => siblingPattern.test(t.name));
+
+  // Find highest existing number
+  let maxNum = 1; // Original counts as 1
+  for (const sibling of siblings) {
+    const match = sibling.name.match(/\((\d+)\)$/);
+    if (match) {
+      maxNum = Math.max(maxNum, parseInt(match[1], 10));
+    }
+  }
+
+  return `${baseName} (${maxNum + 1})`;
+}
+
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
