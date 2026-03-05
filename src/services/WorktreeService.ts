@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
-import { git, exec } from '../utils/gitUtils';
+import { git } from '../utils/gitUtils';
+import { slugify } from '../utils/taskUtils';
 
 export class WorktreeService {
   /**
@@ -14,7 +15,7 @@ export class WorktreeService {
     taskName: string,
     baseRef?: string,
   ): Promise<{ worktreePath: string; branch: string; baseBranch: string }> {
-    const slug = this.slugify(taskName);
+    const slug = slugify(taskName);
     const hash = crypto.randomBytes(2).toString('hex');
     const branch = `${slug}-${hash}`;
     const worktreeDir = path.join(projectPath, '..', 'worktrees');
@@ -115,11 +116,4 @@ export class WorktreeService {
     }
   }
 
-  private slugify(text: string): string {
-    return text
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 40);
-  }
 }

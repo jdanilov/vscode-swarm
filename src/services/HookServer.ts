@@ -105,41 +105,18 @@ export class HookServer extends EventEmitter {
     // Use $SWARM_TASK_ID environment variable (set per-terminal in ClaudeSpawner)
     // This ensures each Claude process reports its own task's status,
     // even when tasks share the same .claude/settings.local.json file.
+
+    const makeHook = (command: string) => [
+      { matcher: '', hooks: [{ type: 'command', command }] },
+    ];
+
     return {
       hooks: {
-        Stop: [
-          {
-            matcher: '',
-            hooks: [
-              {
-                type: 'command',
-                command: `curl -s "${base}/hook/stop?taskId=$SWARM_TASK_ID"`,
-              },
-            ],
-          },
-        ],
-        UserPromptSubmit: [
-          {
-            matcher: '',
-            hooks: [
-              {
-                type: 'command',
-                command: `curl -s "${base}/hook/busy?taskId=$SWARM_TASK_ID"`,
-              },
-            ],
-          },
-        ],
-        Notification: [
-          {
-            matcher: '',
-            hooks: [
-              {
-                type: 'command',
-                command: `curl -s -X POST -H "Content-Type: application/json" -d "$HOOK_PAYLOAD" "${base}/hook/notification?taskId=$SWARM_TASK_ID"`,
-              },
-            ],
-          },
-        ],
+        Stop: makeHook(`curl -s "${base}/hook/stop?taskId=$SWARM_TASK_ID"`),
+        UserPromptSubmit: makeHook(`curl -s "${base}/hook/busy?taskId=$SWARM_TASK_ID"`),
+        Notification: makeHook(
+          `curl -s -X POST -H "Content-Type: application/json" -d "$HOOK_PAYLOAD" "${base}/hook/notification?taskId=$SWARM_TASK_ID"`,
+        ),
       },
     };
   }
