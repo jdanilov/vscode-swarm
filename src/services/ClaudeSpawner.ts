@@ -31,8 +31,8 @@ export class ClaudeSpawner {
       );
     }
 
-    // Write hook config before spawning
-    this.writeHookConfig(cwd, task.id);
+    // Write hook config before spawning (taskId is passed via env var, not in config)
+    this.writeHookConfig(cwd);
 
     // Build claude command
     const claudeBinary = this.findClaudeBinary();
@@ -44,6 +44,7 @@ export class ClaudeSpawner {
     const terminal = vscode.window.createTerminal({
       name: terminalName,
       cwd,
+      env: { SWARM_TASK_ID: task.id },
       iconPath: new vscode.ThemeIcon('hubot'),
     });
 
@@ -124,7 +125,7 @@ export class ClaudeSpawner {
     return args;
   }
 
-  private writeHookConfig(cwd: string, taskId: string): void {
+  private writeHookConfig(cwd: string): void {
     const claudeDir = path.join(cwd, '.claude');
     if (!fs.existsSync(claudeDir)) {
       fs.mkdirSync(claudeDir, { recursive: true });
@@ -140,7 +141,7 @@ export class ClaudeSpawner {
       }
     }
 
-    const hookConfig = this.hookServer.getHookConfig(taskId);
+    const hookConfig = this.hookServer.getHookConfig();
     const merged = { ...existing, ...hookConfig };
     fs.writeFileSync(settingsPath, JSON.stringify(merged, null, 2), 'utf-8');
   }

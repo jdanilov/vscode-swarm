@@ -97,9 +97,14 @@ export class HookServer extends EventEmitter {
 
   /**
    * Generate the hook configuration JSON for .claude/settings.local.json
+   * Uses $SWARM_TASK_ID env var so each terminal process uses its own taskId,
+   * even when multiple tasks share the same working directory.
    */
-  getHookConfig(taskId: string): Record<string, unknown> {
+  getHookConfig(): Record<string, unknown> {
     const base = `http://127.0.0.1:${this._port}`;
+    // Use $SWARM_TASK_ID environment variable (set per-terminal in ClaudeSpawner)
+    // This ensures each Claude process reports its own task's status,
+    // even when tasks share the same .claude/settings.local.json file.
     return {
       hooks: {
         Stop: [
@@ -108,7 +113,7 @@ export class HookServer extends EventEmitter {
             hooks: [
               {
                 type: 'command',
-                command: `curl -s "${base}/hook/stop?taskId=${taskId}"`,
+                command: `curl -s "${base}/hook/stop?taskId=$SWARM_TASK_ID"`,
               },
             ],
           },
@@ -119,7 +124,7 @@ export class HookServer extends EventEmitter {
             hooks: [
               {
                 type: 'command',
-                command: `curl -s "${base}/hook/busy?taskId=${taskId}"`,
+                command: `curl -s "${base}/hook/busy?taskId=$SWARM_TASK_ID"`,
               },
             ],
           },
@@ -130,7 +135,7 @@ export class HookServer extends EventEmitter {
             hooks: [
               {
                 type: 'command',
-                command: `curl -s -X POST -H "Content-Type: application/json" -d "$HOOK_PAYLOAD" "${base}/hook/notification?taskId=${taskId}"`,
+                command: `curl -s -X POST -H "Content-Type: application/json" -d "$HOOK_PAYLOAD" "${base}/hook/notification?taskId=$SWARM_TASK_ID"`,
               },
             ],
           },
