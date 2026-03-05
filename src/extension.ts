@@ -178,7 +178,7 @@ async function createTaskFromForm(projectPath: string, data: NewTaskFormData) {
   await spawnTask(task);
 }
 
-async function spawnTask(task: Task) {
+async function spawnTask(task: Task, resume = false) {
   const projectPath = getProjectPath();
   if (!projectPath) return;
 
@@ -186,7 +186,7 @@ async function spawnTask(task: Task) {
     // Start as idle - hooks will update to busy when user submits prompt
     storage.updateTask(task.id, { status: 'idle' });
     treeProvider.refresh();
-    await spawner.spawn(task, projectPath);
+    await spawner.spawn(task, projectPath, resume);
   } catch (err: unknown) {
     storage.updateTask(task.id, { status: 'stopped' });
     treeProvider.refresh();
@@ -226,8 +226,8 @@ function openTerminal(item: TaskItem) {
   if (spawner.hasTerminal(item.task.id)) {
     spawner.focusTerminal(item.task.id);
   } else {
-    // Offer to spawn
-    spawnTask(item.task);
+    // Spawn and resume existing conversation
+    spawnTask(item.task, true);
   }
 }
 
@@ -243,8 +243,7 @@ async function switchWorktree(item: TaskItem) {
 }
 
 async function resumeTask(item: TaskItem) {
-  // Resume is identical to spawn - both use --continue flag
-  await spawnTask(item.task);
+  await spawnTask(item.task, true);
 }
 
 async function commitTask(item: TaskItem) {
@@ -291,11 +290,11 @@ function handleStaleTasksOnRestart(
     }
   }
 
-  // Spawn fresh terminals for stale tasks
+  // Spawn fresh terminals for stale tasks (resume existing conversations)
   const projectPath = getProjectPath();
   for (const task of staleTasks) {
     if (projectPath) {
-      spawnerInstance.spawn(task, projectPath);
+      spawnerInstance.spawn(task, projectPath, true);
       storage.updateTask(task.id, { status: 'idle' });
     } else {
       storage.updateTask(task.id, { status: 'stopped' });

@@ -1,0 +1,16 @@
+{
+  "tasks": [
+    {
+      "id": "ac350699fa1e",
+      "sessionId": "3d1c9480-d4c8-424d-b1eb-dea018eba76a",
+      "name": "master",
+      "branch": "",
+      "baseBranch": "",
+      "worktreePath": null,
+      "permissionMode": "fullAuto",
+      "model": "opus",
+      "status": "idle",
+      "createdAt": "2026-03-05T13:15:28.892Z"
+    }
+  ]
+}

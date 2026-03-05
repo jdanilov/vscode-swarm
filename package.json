@@ -188,7 +188,8 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package"
+    "package": "npm run compile && npx @vscode/vsce package --allow-missing-repository",
+    "install-local": "npm run package && cursor --install-extension vscode-swarm-0.1.0.vsix"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

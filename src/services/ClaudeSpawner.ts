@@ -15,8 +15,9 @@ export class ClaudeSpawner {
 
   /**
    * Spawn a new Claude Code session for a task.
+   * @param resume - If true, use --continue to resume existing conversation
    */
-  async spawn(task: Task, projectPath: string): Promise<vscode.Terminal> {
+  async spawn(task: Task, projectPath: string, resume = false): Promise<vscode.Terminal> {
     // Kill existing managed terminal for this task if any
     this.killTerminal(task.id);
 
@@ -27,7 +28,7 @@ export class ClaudeSpawner {
 
     // Build claude command
     const claudeBinary = this.findClaudeBinary();
-    const args = this.buildArgs(task);
+    const args = this.buildArgs(task, resume);
     const claudeCmd = [claudeBinary, ...args].join(' ');
 
     const terminalName = `Swarm: ${task.name}`;
@@ -96,11 +97,13 @@ export class ClaudeSpawner {
     this.terminals.clear();
   }
 
-  private buildArgs(task: Task): string[] {
+  private buildArgs(task: Task, resume: boolean): string[] {
     const args: string[] = [];
 
-    // Always use --continue to resume existing session if any
-    args.push('--continue');
+    // Only use --continue when resuming an existing session
+    if (resume) {
+      args.push('--continue');
+    }
 
     // Permission mode (only fullAuto has a CLI flag)
     if (task.permissionMode === 'fullAuto') {

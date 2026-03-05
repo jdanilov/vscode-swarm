@@ -1,4 +1,4 @@
-# Swarm
+# Swarm for Claude Code
 
 Run multiple Claude Code agents in parallel, each in its own git worktree.
 
