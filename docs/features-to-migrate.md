@@ -7,7 +7,7 @@ This document tracks features from the Dash Electron app (`/opt/ed/dash`) that s
 1. ~~**`--fork-session` flag**~~ ❌ NOT NEEDED
    - Decided against implementing - fresh context is preferred behavior
 
-2. **Task Archiving**
+2. ~~**Task Archiving**~~ ✅ IMPLEMENTED
    - Soft-delete with restore capability instead of permanent deletion
    - Tasks get `archivedAt` timestamp, can be filtered/restored
    - Location in Dash: `src/shared/types.ts`, database schema
