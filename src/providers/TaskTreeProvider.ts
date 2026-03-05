@@ -53,6 +53,17 @@ export class TaskTreeProvider implements vscode.TreeDataProvider<TaskItem> {
     return element;
   }
 
+  /**
+   * Get a TaskItem by task ID. Used for revealing items in the tree.
+   */
+  getTaskItem(taskId: string): TaskItem | undefined {
+    const task = this.storage.getTask(taskId);
+    if (!task) return undefined;
+    const effectivePath = this.getEffectivePath(task);
+    const stats = this.gitStatsService.getCachedStats(effectivePath);
+    return new TaskItem(task, stats, this.gitStatsService);
+  }
+
   getChildren(): TaskItem[] {
     const tasks = this.storage.getTasks();
     if (tasks.length === 0) {
