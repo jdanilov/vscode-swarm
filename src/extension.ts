@@ -71,6 +71,9 @@ export async function activate(context: vscode.ExtensionContext) {
     treeView,
     vscode.commands.registerCommand('swarm.newTask', () => newTask()),
     vscode.commands.registerCommand('swarm.deleteTask', (item: TaskItem) => deleteTask(item)),
+    vscode.commands.registerCommand('swarm.archiveTask', (item: TaskItem) => archiveTask(item)),
+    vscode.commands.registerCommand('swarm.restoreTask', (item: TaskItem) => restoreTask(item)),
+    vscode.commands.registerCommand('swarm.toggleShowArchived', () => toggleShowArchived()),
     vscode.commands.registerCommand('swarm.openTerminal', (item: TaskItem) => openTerminal(item)),
     vscode.commands.registerCommand('swarm.switchWorktree', (item: TaskItem) =>
       switchWorktree(item),
@@ -87,6 +90,9 @@ export async function activate(context: vscode.ExtensionContext) {
       newTaskInBranch(item),
     ),
   );
+
+  // Update context for showing/hiding the toggle archived button
+  updateArchivedContext();
 
   // Handle tasks that were active before restart - resume sessions in orphaned terminals
   handleStaleTasksOnRestart(storage, treeProvider, spawner);
@@ -119,7 +125,7 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(statusBar);
 
   function updateStatusBar() {
-    const tasks = storage.getTasks();
+    const tasks = storage.getActiveTasks();
     const busy = tasks.filter((t) => t.status === 'busy').length;
     const total = tasks.length;
     if (total === 0) {
@@ -220,6 +226,37 @@ async function spawnTask(task: Task, resume = false) {
     treeProvider.refresh();
     vscode.window.showErrorMessage(`Failed to start Claude: ${getErrorMessage(err)}`);
   }
+}
+
+function archiveTask(item: TaskItem) {
+  const task = item.task;
+  spawner.killTerminal(task.id);
+  storage.archiveTask(task.id);
+  treeProvider.refresh();
+  updateArchivedContext();
+}
+
+function restoreTask(item: TaskItem) {
+  storage.restoreTask(item.task.id);
+  treeProvider.refresh();
+  updateArchivedContext();
+}
+
+function toggleShowArchived() {
+  treeProvider.setShowArchived(!treeProvider.showArchived);
+  vscode.commands.executeCommand(
+    'setContext',
+    'swarm.showingArchived',
+    treeProvider.showArchived,
+  );
+}
+
+function updateArchivedContext() {
+  vscode.commands.executeCommand(
+    'setContext',
+    'swarm.hasArchivedTasks',
+    treeProvider.hasArchivedTasks(),
+  );
 }
 
 async function deleteTask(item: TaskItem) {
