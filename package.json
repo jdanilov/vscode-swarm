@@ -1,0 +1,198 @@
+{
+  "name": "vscode-swarm",
+  "displayName": "Swarm",
+  "description": "Run multiple Claude Code agents in parallel, each in its own git worktree",
+  "version": "0.1.0",
+  "publisher": "jdanilov",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jdanilov/vscode-swarm"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "swarm",
+          "title": "Swarm",
+          "icon": "$(layers)"
+        }
+      ]
+    },
+    "views": {
+      "swarm": [
+        {
+          "id": "swarmTasks",
+          "name": "Tasks",
+          "visibility": "visible"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "swarm.newTask",
+        "title": "New Task",
+        "icon": "$(add)",
+        "category": "Swarm"
+      },
+      {
+        "command": "swarm.deleteTask",
+        "title": "Delete Task",
+        "icon": "$(trash)",
+        "category": "Swarm"
+      },
+      {
+        "command": "swarm.openTerminal",
+        "title": "Open Terminal",
+        "icon": "$(terminal)",
+        "category": "Swarm"
+      },
+      {
+        "command": "swarm.switchWorktree",
+        "title": "Open Worktree in New Window",
+        "icon": "$(folder-opened)",
+        "category": "Swarm"
+      },
+      {
+        "command": "swarm.resumeTask",
+        "title": "Resume Task",
+        "icon": "$(play)",
+        "category": "Swarm"
+      },
+      {
+        "command": "swarm.refreshTasks",
+        "title": "Refresh",
+        "icon": "$(refresh)",
+        "category": "Swarm"
+      },
+      {
+        "command": "swarm.commitTask",
+        "title": "Commit",
+        "icon": "$(git-commit)",
+        "category": "Swarm"
+      },
+      {
+        "command": "swarm.pushTask",
+        "title": "Push",
+        "icon": "$(cloud-upload)",
+        "category": "Swarm"
+      },
+      {
+        "command": "swarm.mergeTask",
+        "title": "Merge to Base",
+        "icon": "$(git-merge)",
+        "category": "Swarm"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "swarm.newTask",
+          "when": "view == swarmTasks",
+          "group": "navigation"
+        },
+        {
+          "command": "swarm.refreshTasks",
+          "when": "view == swarmTasks",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "swarm.switchWorktree",
+          "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
+          "group": "inline@1"
+        },
+        {
+          "command": "swarm.resumeTask",
+          "when": "view == swarmTasks && viewItem =~ /task-(idle|stopped)/",
+          "group": "inline@2"
+        },
+        {
+          "command": "swarm.openTerminal",
+          "when": "view == swarmTasks && viewItem =~ /^task/",
+          "group": "navigation@1"
+        },
+        {
+          "command": "swarm.commitTask",
+          "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
+          "group": "git@1"
+        },
+        {
+          "command": "swarm.pushTask",
+          "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
+          "group": "git@2"
+        },
+        {
+          "command": "swarm.mergeTask",
+          "when": "view == swarmTasks && viewItem =~ /task.*worktree/",
+          "group": "git@3"
+        },
+        {
+          "command": "swarm.deleteTask",
+          "when": "view == swarmTasks && viewItem =~ /^task/",
+          "group": "danger"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Swarm",
+      "properties": {
+        "swarm.defaultPermissionMode": {
+          "type": "string",
+          "enum": [
+            "plan",
+            "autoEdit",
+            "fullAuto"
+          ],
+          "default": "fullAuto",
+          "description": "Default permission mode for new tasks (fullAuto skips all prompts)"
+        },
+        "swarm.defaultModel": {
+          "type": "string",
+          "enum": [
+            "opus",
+            "sonnet",
+            "haiku"
+          ],
+          "default": "opus",
+          "description": "Default model for new tasks"
+        },
+        "swarm.preservedFiles": {
+          "type": "array",
+          "default": [
+            ".env",
+            ".env.local",
+            ".envrc",
+            "docker-compose.override.yml"
+          ],
+          "description": "Files to copy from main project to new worktrees"
+        },
+        "swarm.notifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notifications when tasks complete"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}
