@@ -16,6 +16,7 @@ let taskGitService: TaskGitService;
 let soundService: SoundService;
 let treeProvider: TaskTreeProvider;
 let treeView: vscode.TreeView<TaskItem>;
+let treeViewExplorer: vscode.TreeView<TaskItem>;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Initialize services
@@ -28,20 +29,28 @@ export async function activate(context: vscode.ExtensionContext) {
 
   spawner = new ClaudeSpawner(hookServer);
 
-  // Tree view
+  // Tree view (activity bar)
   treeProvider = new TaskTreeProvider(storage);
   treeView = vscode.window.createTreeView('swarmTasks', {
     treeDataProvider: treeProvider,
     showCollapseAll: false,
   });
 
-  // Click task to open terminal
-  treeView.onDidChangeSelection((e) => {
+  // Tree view (explorer)
+  treeViewExplorer = vscode.window.createTreeView('swarmTasksExplorer', {
+    treeDataProvider: treeProvider,
+    showCollapseAll: false,
+  });
+
+  // Click task to open terminal (both views)
+  const handleSelection = (e: vscode.TreeViewSelectionChangeEvent<TaskItem>) => {
     if (e.selection.length > 0) {
       const item = e.selection[0];
       vscode.commands.executeCommand('swarm.openTerminal', item);
     }
-  });
+  };
+  treeView.onDidChangeSelection(handleSelection);
+  treeViewExplorer.onDidChangeSelection(handleSelection);
 
   // Helper to update archived context
   function updateArchivedContext() {
@@ -60,7 +69,7 @@ export async function activate(context: vscode.ExtensionContext) {
     updateArchivedContext,
   });
 
-  context.subscriptions.push(treeView);
+  context.subscriptions.push(treeView, treeViewExplorer);
 
   // Activity tracking
   hookServer.on('activity', (event: ActivityEvent) => {
@@ -71,7 +80,7 @@ export async function activate(context: vscode.ExtensionContext) {
       treeProvider.refreshGitStats();
 
       const config = vscode.workspace.getConfiguration('swarm');
-      if (config.get('notifications', true) && !treeView.visible) {
+      if (config.get('notifications', true) && !treeView.visible && !treeViewExplorer.visible) {
         const task = storage.getTask(event.taskId);
         const msg = task ? `${task.name} finished` : 'Task finished';
         vscode.window.showInformationMessage(`Swarm: ${msg}`);

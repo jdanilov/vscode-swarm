@@ -43,6 +43,13 @@
       ]
     },
     "views": {
+      "explorer": [
+        {
+          "id": "swarmTasksExplorer",
+          "name": "Swarm",
+          "visibility": "collapsed"
+        }
+      ],
       "swarm": [
         {
           "id": "swarmTasks",
@@ -147,79 +154,79 @@
       "view/title": [
         {
           "command": "swarm.newTask",
-          "when": "view == swarmTasks && !swarm.showingArchived",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && !swarm.showingArchived",
           "group": "navigation"
         },
         {
           "command": "swarm.toggleShowArchived",
-          "when": "view == swarmTasks && (swarm.hasArchivedTasks || swarm.showingArchived)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && (swarm.hasArchivedTasks || swarm.showingArchived)",
           "group": "navigation"
         },
         {
           "command": "swarm.refreshTasks",
-          "when": "view == swarmTasks",
+          "when": "view == swarmTasks || view == swarmTasksExplorer",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "swarm.switchWorktree",
-          "when": "view == swarmTasks && viewItem =~ /task.*-worktree/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /task.*-worktree/ && !(viewItem =~ /-archived/)",
           "group": "inline@1"
         },
         {
           "command": "swarm.resumeTask",
-          "when": "view == swarmTasks && viewItem =~ /task-(idle|stopped)/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /task-(idle|stopped)/ && !(viewItem =~ /-archived/)",
           "group": "inline@2"
         },
         {
           "command": "swarm.openTerminal",
-          "when": "view == swarmTasks && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
           "group": "navigation@1"
         },
         {
           "command": "swarm.commitTask",
-          "when": "view == swarmTasks && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
           "group": "git@1"
         },
         {
           "command": "swarm.syncTask",
-          "when": "view == swarmTasks && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
           "group": "git@2"
         },
         {
           "command": "swarm.mergeTask",
-          "when": "view == swarmTasks && viewItem =~ /task.*-worktree/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /task.*-worktree/ && !(viewItem =~ /-archived/)",
           "group": "git@3"
         },
         {
           "command": "swarm.mergeBaseIntoTask",
-          "when": "view == swarmTasks && viewItem =~ /task.*-worktree/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /task.*-worktree/ && !(viewItem =~ /-archived/)",
           "group": "git@4"
         },
         {
           "command": "swarm.renameTask",
-          "when": "view == swarmTasks && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
           "group": "navigation@2"
         },
         {
           "command": "swarm.newTaskInBranch",
-          "when": "view == swarmTasks && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
           "group": "navigation@3"
         },
         {
           "command": "swarm.archiveTask",
-          "when": "view == swarmTasks && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /^task/ && !(viewItem =~ /-archived/)",
           "group": "z_danger@1"
         },
         {
           "command": "swarm.restoreTask",
-          "when": "view == swarmTasks && viewItem =~ /-archived/",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /-archived/",
           "group": "z_danger@1"
         },
         {
           "command": "swarm.deleteTask",
-          "when": "view == swarmTasks && viewItem =~ /^task/",
+          "when": "(view == swarmTasks || view == swarmTasksExplorer) && viewItem =~ /^task/",
           "group": "z_danger@2"
         }
       ]
