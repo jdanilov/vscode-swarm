@@ -259,8 +259,8 @@
     "install-local": "npm run package && cursor --install-extension vscode-swarm-0.1.0.vsix"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "@types/vscode": "^1.85.0",
-    "typescript": "^5.3.0"
+    "@types/node": "^20.19.35",
+    "@types/vscode": "^1.109.0",
+    "typescript": "^5.9.3"
   }
 }

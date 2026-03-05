@@ -129,13 +129,15 @@ export class NewTaskPanel {
       margin-bottom: 28px;
     }
     .header-icon {
-      width: 80px;
-      height: 80px;
-      font-size: 80px;
-      line-height: 80px;
+      width: 48px;
+      height: 48px;
       margin: 0 auto 12px;
       color: var(--vscode-foreground);
       opacity: 0.8;
+    }
+    .header-icon i {
+      font-size: 48px;
+      line-height: 48px;
     }
     .header h2 {
       font-weight: 600;
@@ -171,15 +173,17 @@ export class NewTaskPanel {
       color: var(--vscode-input-placeholderForeground, rgba(128, 128, 128, 0.7));
     }
     .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
       padding: 10px 12px;
       border: 1px solid var(--vscode-input-border, var(--vscode-widget-border, rgba(128, 128, 128, 0.4)));
       border-radius: 6px;
       background-color: var(--vscode-input-background);
       cursor: pointer;
       transition: border-color 0.15s ease;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     .checkbox-group:hover {
       border-color: var(--vscode-focusBorder);
@@ -286,8 +290,8 @@ export class NewTaskPanel {
     .worktree-path {
       font-size: 0.8em;
       color: var(--vscode-descriptionForeground);
-      margin-top: 6px;
-      padding-left: 26px;
+      margin-top: 8px;
+      margin-left: 26px;
       display: none;
       word-break: break-all;
     }
@@ -311,10 +315,12 @@ export class NewTaskPanel {
 
       <div class="form-group">
         <div class="checkbox-group">
-          <input type="checkbox" id="useWorktree" name="useWorktree">
-          <label for="useWorktree">Create isolated git worktree</label>
+          <div class="checkbox-row">
+            <input type="checkbox" id="useWorktree" name="useWorktree">
+            <label for="useWorktree">Create isolated git worktree</label>
+          </div>
+          <div class="worktree-path" id="worktreePath"></div>
         </div>
-        <div class="worktree-path" id="worktreePath"></div>
       </div>
 
       <div class="form-group">
