@@ -44,7 +44,7 @@ export class ClaudeSpawner {
     if (resume) {
       const freshArgs = this.buildArgs(task, false);
       const freshCmd = [claudeBinary, ...freshArgs].join(' ');
-      fullCmd = `${claudeCmd} || ${freshCmd}`;
+      fullCmd = `${claudeCmd} 2>/dev/null || ${freshCmd}`;
     } else {
       fullCmd = claudeCmd;
     }
