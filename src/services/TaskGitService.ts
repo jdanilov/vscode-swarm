@@ -139,13 +139,6 @@ export class TaskGitService {
       return false;
     }
 
-    const confirm = await vscode.window.showWarningMessage(
-      `Merge "${task.baseBranch}" into "${task.branch}"?`,
-      { modal: true },
-      'Merge',
-    );
-    if (confirm !== 'Merge') return false;
-
     try {
       await vscode.window.withProgress(
         {
