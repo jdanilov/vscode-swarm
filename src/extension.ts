@@ -200,22 +200,33 @@ async function spawnTask(task: Task, resume = false) {
 
 async function deleteTask(item: TaskItem) {
   const task = item.task;
-  const confirm = await vscode.window.showWarningMessage(
-    `Delete task "${task.name}"?${task.worktreePath ? ' This will also remove the worktree.' : ''}`,
-    { modal: true },
-    'Delete',
-  );
+
+  // Check if other tasks share this worktree
+  const siblingTasks = task.worktreePath
+    ? storage.getTasks().filter((t) => t.id !== task.id && t.worktreePath === task.worktreePath)
+    : [];
+  const willRemoveWorktree = task.worktreePath && siblingTasks.length === 0;
+
+  // Build confirmation message
+  let message = `Delete task "${task.name}"?`;
+  if (willRemoveWorktree) {
+    message += ' This will also remove the worktree.';
+  } else if (task.worktreePath && siblingTasks.length > 0) {
+    message += ` (worktree kept for ${siblingTasks.length} other task${siblingTasks.length > 1 ? 's' : ''})`;
+  }
+
+  const confirm = await vscode.window.showWarningMessage(message, 'Delete', 'Cancel');
   if (confirm !== 'Delete') return;
 
   // Kill terminal
   spawner.killTerminal(task.id);
 
-  // Remove worktree
-  if (task.worktreePath) {
+  // Only remove worktree if no other tasks are using it
+  if (willRemoveWorktree) {
     const projectPath = getProjectPath();
     if (projectPath) {
       try {
-        await worktreeService.removeWorktree(projectPath, task.worktreePath, task.branch);
+        await worktreeService.removeWorktree(projectPath, task.worktreePath!, task.branch);
       } catch (err: unknown) {
         vscode.window.showWarningMessage(`Worktree cleanup failed: ${getErrorMessage(err)}`);
       }
