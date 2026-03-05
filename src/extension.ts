@@ -23,7 +23,7 @@ export async function activate(context: vscode.ExtensionContext) {
   extensionUri = context.extensionUri;
 
   // Initialize services
-  storage = new StorageService();
+  storage = new StorageService(context);
   worktreeService = new WorktreeService();
   taskGitService = new TaskGitService();
   hookServer = new HookServer();

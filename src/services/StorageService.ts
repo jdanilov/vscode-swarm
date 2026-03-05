@@ -1,36 +1,21 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as crypto from 'crypto';
 import { SwarmState, Task } from '../types';
 
+const STORAGE_KEY = 'swarm.tasks';
+
 export class StorageService {
   private state: SwarmState = { tasks: [] };
-  private filePath: string | null = null;
 
-  constructor() {
-    this.resolveFilePath();
+  constructor(private context: vscode.ExtensionContext) {
     this.load();
   }
 
-  private resolveFilePath(): void {
-    const folders = vscode.workspace.workspaceFolders;
-    if (!folders?.length) return;
-    const vscodePath = path.join(folders[0].uri.fsPath, '.vscode');
-    if (!fs.existsSync(vscodePath)) {
-      fs.mkdirSync(vscodePath, { recursive: true });
-    }
-    this.filePath = path.join(vscodePath, 'swarm.json');
-  }
-
   private load(): void {
-    if (!this.filePath || !fs.existsSync(this.filePath)) return;
-    try {
-      const raw = fs.readFileSync(this.filePath, 'utf-8');
-      this.state = JSON.parse(raw);
+    const stored = this.context.workspaceState.get<SwarmState>(STORAGE_KEY);
+    if (stored) {
+      this.state = stored;
       this.migrateTasksWithoutSessionId();
-    } catch {
-      this.state = { tasks: [] };
     }
   }
 
@@ -48,8 +33,7 @@ export class StorageService {
   }
 
   private save(): void {
-    if (!this.filePath) return;
-    fs.writeFileSync(this.filePath, JSON.stringify(this.state, null, 2), 'utf-8');
+    this.context.workspaceState.update(STORAGE_KEY, this.state);
   }
 
   getTasks(): Task[] {
