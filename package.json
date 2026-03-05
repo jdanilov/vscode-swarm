@@ -133,7 +133,7 @@
       },
       {
         "command": "swarm.mergeBaseIntoTask",
-        "title": "Merge Base Into Branch",
+        "title": "Merge from Base",
         "icon": "$(git-pull-request)",
         "category": "Swarm"
       },
