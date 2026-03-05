@@ -139,7 +139,7 @@
         },
         {
           "command": "swarm.toggleShowArchived",
-          "when": "view == swarmTasks && swarm.hasArchivedTasks",
+          "when": "view == swarmTasks && (swarm.hasArchivedTasks || swarm.showingArchived)",
           "group": "navigation"
         },
         {
