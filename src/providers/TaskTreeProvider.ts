@@ -149,6 +149,13 @@ export class TaskItem extends vscode.TreeItem {
     this.tooltip = this.buildTooltip();
     this.iconPath = new vscode.ThemeIcon(statusIcons[task.status], statusColors[task.status]);
 
+    // Click to open terminal (works even when already selected)
+    this.command = {
+      command: 'swarm.openTerminal',
+      title: 'Open Terminal',
+      arguments: [this],
+    };
+
     // Context value for menu visibility rules
     const worktreeFlag = task.worktreePath ? '-worktree' : '';
     const archivedFlag = task.archivedAt ? '-archived' : '';

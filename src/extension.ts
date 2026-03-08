@@ -42,16 +42,6 @@ export async function activate(context: vscode.ExtensionContext) {
     showCollapseAll: false,
   });
 
-  // Click task to open terminal (both views)
-  const handleSelection = (e: vscode.TreeViewSelectionChangeEvent<TaskItem>) => {
-    if (e.selection.length > 0) {
-      const item = e.selection[0];
-      vscode.commands.executeCommand('swarm.openTerminal', item);
-    }
-  };
-  treeView.onDidChangeSelection(handleSelection);
-  treeViewExplorer.onDidChangeSelection(handleSelection);
-
   // Helper to update archived context
   function updateArchivedContext() {
     vscode.commands.executeCommand('setContext', 'swarm.hasArchivedTasks', treeProvider.hasArchivedTasks());
